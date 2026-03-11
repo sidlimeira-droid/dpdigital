@@ -62,7 +62,7 @@ export default function App() {
         <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Configuração Necessária</h1>
         <p className="text-zinc-600 mt-2 max-w-md">
           As credenciais do Supabase não foram encontradas. Por favor, configure as variáveis de ambiente 
-          <strong> NEXT_PUBLIC_SUPABASE_URL</strong> e <strong>NEXT_PUBLIC_SUPABASE_ANON_KEY</strong> nas configurações do AI Studio.
+          <strong> VITE_SUPABASE_URL</strong> e <strong>VITE_SUPABASE_ANON_KEY</strong> nas configurações do AI Studio.
         </p>
         <div className="mt-8 p-4 bg-white border border-zinc-200 rounded-xl text-left text-sm">
           <p className="font-bold mb-2">Passos para configurar:</p>
