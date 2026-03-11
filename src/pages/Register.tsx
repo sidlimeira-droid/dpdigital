@@ -22,6 +22,13 @@ export default function Register() {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          nome,
+          cpf,
+          tipo: 'colaborador',
+        }
+      }
     });
 
     if (authError) {
@@ -31,26 +38,10 @@ export default function Register() {
     }
 
     if (authData.user) {
-      // 2. Create Profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: authData.user.id,
-            nome,
-            cpf,
-            email,
-            tipo: 'colaborador', // Default role
-          },
-        ]);
-
-      if (profileError) {
-        setError('Erro ao criar perfil. Verifique se o CPF já está cadastrado.');
-        setLoading(false);
-      } else {
-        navigate('/');
-      }
+      // Profile is created automatically by the database trigger
+      navigate('/');
     }
+
   }
 
   return (

@@ -1,75 +1,106 @@
--- Database Schema for Sistema DP
-
--- 1. Profiles table (extends auth.users)
-CREATE TABLE public.profiles (
-    id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-    nome TEXT NOT NULL,
-    cpf TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    tipo TEXT NOT NULL CHECK (tipo IN ('admin', 'colaborador')),
-    data_criacao TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+-- Create profiles table
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  nome TEXT NOT NULL,
+  cpf TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  tipo TEXT NOT NULL CHECK (tipo IN ('admin', 'colaborador')) DEFAULT 'colaborador',
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 2. User Signatures (Stored templates)
-CREATE TABLE public.user_signatures (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    assinatura_imagem TEXT NOT NULL, -- URL to Supabase Storage
-    data_cadastro TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+-- Create documents table
+CREATE TABLE documents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  tipo_documento TEXT NOT NULL CHECK (tipo_documento IN ('contra_cheque', 'folha_ponto', 'trabalhista')),
+  competencia TEXT NOT NULL,
+  arquivo_pdf TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('pendente', 'assinado')) DEFAULT 'pendente',
+  data_envio TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  data_assinatura TIMESTAMP WITH TIME ZONE
 );
 
--- 3. Documents
-CREATE TABLE public.documents (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    tipo_documento TEXT NOT NULL CHECK (tipo_documento IN ('contra_cheque', 'folha_ponto', 'trabalhista')),
-    competencia TEXT NOT NULL, -- e.g., "03/2026"
-    arquivo_pdf TEXT NOT NULL, -- URL to Supabase Storage
-    status TEXT NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente', 'assinado')),
-    data_envio TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    data_assinatura TIMESTAMP WITH TIME ZONE
+-- Create user_signature table
+CREATE TABLE user_signature (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  assinatura_imagem TEXT NOT NULL,
+  data_cadastro TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 4. Signatures (Audit log for specific document signings)
-CREATE TABLE public.signatures (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE NOT NULL,
-    assinatura_imagem TEXT NOT NULL, -- URL to Supabase Storage (snapshot at time of signing)
-    ip_usuario TEXT NOT NULL,
-    data_assinatura TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+-- Create signatures audit table
+CREATE TABLE signatures (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  document_id UUID REFERENCES documents(id) ON DELETE CASCADE NOT NULL,
+  assinatura_imagem TEXT NOT NULL,
+  ip_usuario TEXT,
+  data_assinatura TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 5. Notifications
-CREATE TABLE public.notifications (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    titulo TEXT NOT NULL,
-    mensagem TEXT NOT NULL,
-    tipo TEXT NOT NULL,
-    lida BOOLEAN DEFAULT FALSE NOT NULL,
-    data_criacao TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+-- Create notifications table
+CREATE TABLE notifications (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  titulo TEXT NOT NULL,
+  mensagem TEXT NOT NULL,
+  tipo TEXT NOT NULL,
+  lida BOOLEAN DEFAULT FALSE NOT NULL,
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Enable RLS
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_signatures ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.signatures ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+-- Set up Row Level Security (RLS)
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_signature ENABLE ROW LEVEL SECURITY;
+ALTER TABLE signatures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
--- Policies (Simplified for demo, in production use more granular rules)
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+-- Profiles Policies
+CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
+CREATE POLICY "Users can update own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Users can view their own signatures" ON public.user_signatures FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own signatures" ON public.user_signatures FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Documents Policies
+CREATE POLICY "Admins can do everything with documents." ON documents FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND tipo = 'admin')
+);
+CREATE POLICY "Users can view own documents." ON documents FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own documents status." ON documents FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can view their own documents" ON public.documents FOR SELECT USING (auth.uid() = user_id OR (SELECT tipo FROM profiles WHERE id = auth.uid()) = 'admin');
-CREATE POLICY "Admins can manage documents" ON public.documents FOR ALL USING ((SELECT tipo FROM profiles WHERE id = auth.uid()) = 'admin');
+-- User Signature Policies
+CREATE POLICY "Users can manage own signature." ON user_signature FOR ALL USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can view notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update their notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+-- Signatures Policies
+CREATE POLICY "Admins can view all signatures." ON signatures FOR SELECT USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND tipo = 'admin')
+);
+CREATE POLICY "Users can view own signatures." ON signatures FOR SELECT USING (
+  EXISTS (SELECT 1 FROM documents WHERE id = signatures.document_id AND user_id = auth.uid())
+);
 
--- Storage Buckets (Run these in the Supabase Dashboard)
--- 1. 'documents' (private)
--- 2. 'signatures' (private)
+-- Notifications Policies
+CREATE POLICY "Users can manage own notifications." ON notifications FOR ALL USING (auth.uid() = user_id);
+
+-- Enable Realtime for notifications
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE documents;
+
+-- Function to handle new user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, nome, cpf, email, tipo)
+  VALUES (
+    new.id,
+    COALESCE(new.raw_user_meta_data->>'nome', 'Novo Usuário'),
+    COALESCE(new.raw_user_meta_data->>'cpf', '000.000.000-00'),
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'tipo', 'colaborador')
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger for new user signup
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
