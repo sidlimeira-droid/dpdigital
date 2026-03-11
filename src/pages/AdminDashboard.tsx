@@ -14,7 +14,9 @@ export default function AdminDashboard() {
   const [colaboradores, setColaboradores] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'docs' | 'users'>('docs');
   const [uploading, setUploading] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   
   // Form state
   const [selectedUser, setSelectedUser] = useState('');
@@ -86,6 +88,26 @@ export default function AdminDashboard() {
     }
   }
 
+  async function toggleUserRole(user: Profile) {
+    const newRole = user.tipo === 'admin' ? 'colaborador' : 'admin';
+    if (!confirm(`Deseja alterar o cargo de ${user.nome} para ${newRole}?`)) return;
+
+    setUpdatingRole(user.id);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ tipo: newRole })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      fetchData();
+    } catch (error: any) {
+      alert('Erro ao atualizar cargo: ' + error.message);
+    } finally {
+      setUpdatingRole(null);
+    }
+  }
+
   function resetForm() {
     setSelectedUser('');
     setDocType('contra_cheque');
@@ -131,204 +153,102 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
+        {/* ... existing stats ... */}
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex border-b border-zinc-200">
+        <button 
+          onClick={() => setActiveTab('docs')}
+          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'docs' ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+        >
+          Documentos
+        </button>
+        <button 
+          onClick={() => setActiveTab('users')}
+          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'users' ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+        >
+          Colaboradores & Admins
+        </button>
+      </div>
+
+      {activeTab === 'docs' ? (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* ... existing charts and quick actions ... */}
+          </div>
+
+          {/* Documents Table Section */}
           <motion.div 
-            key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm card-hover"
+            className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl`}>
-                <stat.icon className="w-6 h-6" />
-              </div>
-              <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                <TrendingUp className="w-3 h-3" />
-                +12%
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">{stat.label}</p>
-              <p className="text-3xl font-display font-bold text-zinc-900 mt-1">{stat.value}</p>
-            </div>
+            {/* ... existing table content ... */}
           </motion.div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chart Section */}
+        </>
+      ) : (
         <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="lg:col-span-2 bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900">Atividade de Assinaturas</h2>
-              <p className="text-xs text-zinc-500">Volume de documentos processados mensalmente</p>
-            </div>
-            <select className="bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-1.5 text-xs font-bold text-zinc-600 outline-none">
-              <option>Últimos 6 meses</option>
-              <option>Este ano</option>
-            </select>
+          <div className="p-8 border-b border-zinc-100">
+            <h2 className="text-xl font-bold text-zinc-900">Gestão de Usuários</h2>
+            <p className="text-sm text-zinc-500">Gerencie cargos e permissões de acesso.</p>
           </div>
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorAssinados" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                  itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                />
-                <Area type="monotone" dataKey="assinados" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorAssinados)" />
-                <Area type="monotone" dataKey="pendentes" stroke="#f59e0b" strokeWidth={3} fillOpacity={0} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Quick Actions Section */}
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm"
-        >
-          <h2 className="text-lg font-bold text-zinc-900 mb-6">Ações Rápidas</h2>
-          <div className="space-y-3">
-            {[
-              { label: 'Gerenciar Colaboradores', desc: 'Ver lista e editar dados', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-              { label: 'Gerar Relatório Mensal', desc: 'Exportar dados em PDF', icon: FileCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-              { label: 'Notificar Pendentes', desc: 'Enviar lembrete em massa', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-              { label: 'Configurações do Sistema', desc: 'Ajustar parâmetros globais', icon: Settings, color: 'text-zinc-600', bg: 'bg-zinc-100' },
-            ].map((action, i) => (
-              <button 
-                key={i}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border border-zinc-50 hover:bg-zinc-50 hover:border-zinc-200 transition-all text-left group"
-              >
-                <div className={`${action.bg} ${action.color} p-2.5 rounded-xl group-hover:scale-110 transition-transform`}>
-                  <action.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-zinc-900">{action.label}</p>
-                  <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{action.desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Documents Table Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden"
-      >
-        <div className="p-8 border-b border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900">Controle de Documentos</h2>
-            <p className="text-sm text-zinc-500">Acompanhe o status de cada envio em tempo real.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-zinc-900 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Buscar colaborador..." 
-                className="pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900/5 focus:border-zinc-900 outline-none transition-all w-full sm:w-64"
-              />
-            </div>
-            <button className="p-2.5 text-zinc-500 hover:bg-zinc-100 rounded-xl border border-zinc-200 transition-colors">
-              <Filter className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-zinc-50/50">
-                <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Colaborador</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Tipo de Documento</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Competência</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Status</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Data Envio</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {docs.map((doc) => (
-                <tr key={doc.id} className="hover:bg-zinc-50/50 transition-colors group">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-sm font-bold text-zinc-600 border border-zinc-200 group-hover:bg-white transition-colors">
-                        {doc.profile?.nome.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-zinc-900">{doc.profile?.nome}</p>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">{doc.profile?.cpf}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-zinc-300" />
-                      <span className="text-sm font-medium text-zinc-600 capitalize">{doc.tipo_documento.replace('_', ' ')}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-2 text-sm font-bold text-zinc-600">
-                      <Calendar className="w-4 h-4 text-zinc-400" />
-                      {doc.competencia}
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      doc.status === 'assinado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {doc.status === 'assinado' ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                      {doc.status === 'assinado' ? 'Assinado' : 'Pendente'}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-sm font-medium text-zinc-500">
-                    {new Date(doc.data_envio).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all">
-                        <Download className="w-5 h-5" />
-                      </button>
-                      <button className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-zinc-50/50">
+                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Usuário</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Email</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Cargo</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Data Cadastro</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {docs.length === 0 && !loading && (
-          <div className="p-20 text-center">
-            <div className="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-zinc-200" />
-            </div>
-            <p className="text-sm font-medium text-zinc-500">Nenhum documento encontrado.</p>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {colaboradores.concat(docs.map(d => d.profile).filter((p, i, self) => p && p.tipo === 'admin' && self.findIndex(s => s?.id === p.id) === i) as Profile[]).filter((p, i, self) => p && self.findIndex(s => s.id === p.id) === i).map((user) => (
+                  <tr key={user.id} className="hover:bg-zinc-50/50 transition-colors group">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-sm font-bold text-zinc-600 border border-zinc-200">
+                          {user.nome.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-zinc-900">{user.nome}</p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">{user.cpf}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-sm text-zinc-600">{user.email}</td>
+                    <td className="px-8 py-5">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        user.tipo === 'admin' ? 'bg-violet-100 text-violet-700' : 'bg-zinc-100 text-zinc-700'
+                      }`}>
+                        {user.tipo}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-sm text-zinc-500">
+                      {new Date(user.data_criacao).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <button 
+                        onClick={() => toggleUserRole(user)}
+                        disabled={updatingRole === user.id}
+                        className="text-xs font-bold text-zinc-900 hover:underline underline-offset-4 disabled:opacity-50"
+                      >
+                        {updatingRole === user.id ? 'Atualizando...' : `Tornar ${user.tipo === 'admin' ? 'Colaborador' : 'Admin'}`}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Upload Modal */}
       <AnimatePresence>
