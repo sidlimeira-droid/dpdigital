@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
@@ -20,18 +19,21 @@ app.get("/api/health", (req, res) => {
 async function setupDevServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    // Serve static files in production
-    const distPath = path.resolve(__dirname, "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
-    });
+    // Serve static files in production (only if NOT on Vercel/Netlify)
+    if (!process.env.VERCEL && !process.env.NETLIFY) {
+      const distPath = path.resolve(__dirname, "dist");
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.resolve(distPath, "index.html"));
+      });
+    }
   }
 
   const PORT = 3000;
