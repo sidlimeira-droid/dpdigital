@@ -24,7 +24,8 @@
       window.onerror = function(msg, url, line, col, error) {
         console.error("Global Error: ", msg, " at ", url, ":", line);
         var root = document.getElementById('root');
-        if (root && (!root.innerHTML || root.innerHTML === "")) {
+        if (root) {
+          // Overwrite the loading UI with the error message
           root.innerHTML = '<div style="padding: 40px; color: #08294a; font-family: sans-serif; text-align: center;">' +
             '<h2 style="font-size: 24px; margin-bottom: 16px;">Erro de Inicialização</h2>' +
             '<p style="color: #64748b; margin-bottom: 24px;">Ocorreu um erro ao carregar a aplicação. Isso pode ser devido a variáveis de ambiente ausentes ou um erro no código.</p>' +

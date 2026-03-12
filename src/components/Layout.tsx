@@ -133,7 +133,7 @@ export default function Layout({ profile }: LayoutProps) {
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-200 font-bold text-navy-950">
-                  {profile?.nome.charAt(0)}
+                  {profile?.nome?.charAt(0) || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-navy-950 truncate">{profile?.nome}</p>

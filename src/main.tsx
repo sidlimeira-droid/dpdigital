@@ -5,8 +5,20 @@ import './index.css';
 
 console.log('Main.tsx executing...');
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+try {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) throw new Error('Root element not found');
+  
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+  console.log('React render initiated');
+} catch (error) {
+  console.error('Failed to render React app:', error);
+  const root = document.getElementById('root');
+  if (root) {
+    root.innerHTML = '<div style="padding: 20px; color: red;">Erro crítico ao carregar a aplicação. Verifique o console.</div>';
+  }
+}

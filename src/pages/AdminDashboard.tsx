@@ -321,7 +321,7 @@ export default function AdminDashboard() {
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-navy-50 rounded-lg flex items-center justify-center text-xs font-bold text-navy-600">
-                            {doc.profile?.nome.charAt(0)}
+                            {doc.profile?.nome?.charAt(0) || '?'}
                           </div>
                           <span className="text-sm font-bold text-navy-950">{doc.profile?.nome}</span>
                         </div>
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-sm font-bold text-slate-600 border border-slate-200">
-                          {user.nome.charAt(0)}
+                          {user.nome?.charAt(0) || '?'}
                         </div>
                         <div>
                           <p className="text-sm font-bold text-navy-950">{user.nome}</p>
