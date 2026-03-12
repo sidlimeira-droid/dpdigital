@@ -10,17 +10,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(express.json());
 
-async function setupServer() {
-  const PORT = 3000;
+// API Routes - Define these synchronously so they are available immediately
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "Sistema DP API is running" });
+});
 
-  app.use(express.json());
-
-  // API Routes
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", message: "Sistema DP API is running" });
-  });
-
+async function setupDevServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -37,13 +34,14 @@ async function setupServer() {
     });
   }
 
-  if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  const PORT = 3000;
+  if (process.env.NODE_ENV !== "production" || (!process.env.VERCEL && !process.env.NETLIFY)) {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
   }
 }
 
-setupServer();
+setupDevServer();
 
 export default app;
