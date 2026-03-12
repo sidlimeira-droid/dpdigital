@@ -18,6 +18,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('App component mounted. Supabase status:', !!supabase);
     if (!supabase) {
       setLoading(false);
       return;
