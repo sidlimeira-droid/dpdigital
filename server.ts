@@ -42,6 +42,9 @@ async function setupDevServer() {
   }
 }
 
-setupDevServer();
+// Only setup dev server if not in production and not in serverless
+if (process.env.NODE_ENV !== "production" && !process.env.VERCEL && !process.env.NETLIFY) {
+  setupDevServer();
+}
 
 export default app;
