@@ -85,11 +85,11 @@ export default function Signature() {
     <div className="max-w-3xl mx-auto space-y-10">
       {/* Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-zinc-900 text-white rounded-2xl shadow-xl mb-2">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-navy-950 text-white rounded-2xl shadow-xl mb-2">
           <PenTool className="w-8 h-8" />
         </div>
-        <h1 className="text-4xl font-display font-bold text-zinc-900 tracking-tight">Assinatura Digital</h1>
-        <p className="text-zinc-500 max-w-lg mx-auto">
+        <h1 className="text-4xl font-display font-bold text-navy-950 tracking-tight">Assinatura Digital</h1>
+        <p className="text-slate-500 max-w-lg mx-auto">
           Cadastre sua assinatura oficial para assinar documentos digitais com validade jurídica e segurança total.
         </p>
       </div>
@@ -123,23 +123,23 @@ export default function Signature() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* Signature Pad */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="bg-white p-8 rounded-[2rem] border border-zinc-200 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1 bg-zinc-900/5" />
+          <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-navy-950/5" />
             <div className="flex items-center justify-between mb-6">
-              <label className="text-sm font-bold text-zinc-900 uppercase tracking-widest flex items-center gap-2">
+              <label className="text-sm font-bold text-navy-950 uppercase tracking-widest flex items-center gap-2">
                 <PenTool className="w-4 h-4" />
                 Área de Assinatura
               </label>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <ShieldCheck className="w-3 h-3" />
                 Ambiente Seguro
               </div>
             </div>
             
-            <div className="border-2 border-dashed border-zinc-100 rounded-2xl overflow-hidden bg-zinc-50/50 group-hover:bg-zinc-50 transition-colors">
+            <div className="border-2 border-dashed border-slate-100 rounded-2xl overflow-hidden bg-slate-50/50 group-hover:bg-slate-50 transition-colors">
               <SignatureCanvas
                 ref={sigCanvas}
-                penColor="#18181b"
+                penColor="#020617"
                 canvasProps={{
                   className: "w-full h-72 cursor-crosshair"
                 }}
@@ -169,9 +169,9 @@ export default function Signature() {
             </div>
           </div>
 
-          <div className="bg-zinc-50 p-6 rounded-2xl flex items-start gap-3">
-            <Info className="w-5 h-5 text-zinc-400 mt-0.5" />
-            <p className="text-xs text-zinc-500 leading-relaxed">
+          <div className="bg-slate-50 p-6 rounded-2xl flex items-start gap-3">
+            <Info className="w-5 h-5 text-slate-400 mt-0.5" />
+            <p className="text-xs text-slate-500 leading-relaxed">
               Dica: Use um mouse ou tela touch para desenhar sua assinatura da forma mais fiel possível ao seu documento de identidade.
             </p>
           </div>
@@ -179,8 +179,8 @@ export default function Signature() {
 
         {/* Current Signature Preview */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-8 rounded-[2rem] border border-zinc-200 shadow-sm h-full flex flex-col">
-            <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-widest mb-8 flex items-center gap-2">
+          <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm h-full flex flex-col">
+            <h2 className="text-sm font-bold text-navy-950 uppercase tracking-widest mb-8 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-emerald-500" />
               Assinatura Ativa
             </h2>
@@ -192,7 +192,7 @@ export default function Signature() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="w-full space-y-8"
                 >
-                  <div className="bg-zinc-50 p-8 rounded-2xl border border-zinc-100 flex items-center justify-center min-h-[160px]">
+                  <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 flex items-center justify-center min-h-[160px]">
                     <img 
                       src={savedSignature} 
                       alt="Sua Assinatura" 
@@ -201,22 +201,22 @@ export default function Signature() {
                     />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-zinc-900">Verificada e Ativa</p>
-                    <p className="text-xs text-zinc-500 mt-1">Pronta para uso em documentos oficiais.</p>
+                    <p className="text-sm font-bold text-navy-950">Verificada e Ativa</p>
+                    <p className="text-xs text-slate-500 mt-1">Pronta para uso em documentos oficiais.</p>
                   </div>
                 </motion.div>
               ) : (
                 <div className="space-y-4 opacity-40">
-                  <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center mx-auto">
-                    <PenTool className="w-10 h-10 text-zinc-300" />
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
+                    <PenTool className="w-10 h-10 text-slate-300" />
                   </div>
-                  <p className="text-sm font-medium text-zinc-400 italic">Nenhuma assinatura cadastrada.</p>
+                  <p className="text-sm font-medium text-slate-400 italic">Nenhuma assinatura cadastrada.</p>
                 </div>
               )}
             </div>
 
-            <div className="mt-8 pt-8 border-t border-zinc-100">
-              <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            <div className="mt-8 pt-8 border-t border-slate-100">
+              <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <ShieldCheck className="w-4 h-4" />
                 Criptografia de Ponta a Ponta
               </div>

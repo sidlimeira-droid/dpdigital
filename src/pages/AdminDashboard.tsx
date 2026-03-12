@@ -133,8 +133,8 @@ export default function AdminDashboard() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-display font-bold text-zinc-900 tracking-tight">Visão Geral</h1>
-          <p className="text-zinc-500 mt-1">Bem-vindo ao painel de controle do RH.</p>
+          <h1 className="text-3xl font-display font-bold text-navy-950 tracking-tight">Visão Geral</h1>
+          <p className="text-slate-500 mt-1">Bem-vindo ao painel de controle do RH.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="btn-secondary hidden sm:flex">
@@ -157,16 +157,16 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex border-b border-zinc-200">
+      <div className="flex border-b border-slate-200">
         <button 
           onClick={() => setActiveTab('docs')}
-          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'docs' ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'docs' ? 'border-navy-950 text-navy-950' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
           Documentos
         </button>
         <button 
           onClick={() => setActiveTab('users')}
-          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'users' ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'users' ? 'border-navy-950 text-navy-950' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
           Colaboradores & Admins
         </button>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden"
+            className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden"
           >
             {/* ... existing table content ... */}
           </motion.div>
@@ -191,53 +191,53 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden"
+          className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden"
         >
-          <div className="p-8 border-b border-zinc-100">
-            <h2 className="text-xl font-bold text-zinc-900">Gestão de Usuários</h2>
-            <p className="text-sm text-zinc-500">Gerencie cargos e permissões de acesso.</p>
+          <div className="p-8 border-b border-slate-100">
+            <h2 className="text-xl font-bold text-navy-950">Gestão de Usuários</h2>
+            <p className="text-sm text-slate-500">Gerencie cargos e permissões de acesso.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-zinc-50/50">
-                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Usuário</th>
-                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Email</th>
-                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Cargo</th>
-                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Data Cadastro</th>
-                  <th className="px-8 py-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Ações</th>
+                <tr className="bg-slate-50/50">
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Usuário</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cargo</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data Cadastro</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-slate-100">
                 {colaboradores.concat(docs.map(d => d.profile).filter((p, i, self) => p && p.tipo === 'admin' && self.findIndex(s => s?.id === p.id) === i) as Profile[]).filter((p, i, self) => p && self.findIndex(s => s.id === p.id) === i).map((user) => (
-                  <tr key={user.id} className="hover:bg-zinc-50/50 transition-colors group">
+                  <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-sm font-bold text-zinc-600 border border-zinc-200">
+                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-sm font-bold text-slate-600 border border-slate-200">
                           {user.nome.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-zinc-900">{user.nome}</p>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">{user.cpf}</p>
+                          <p className="text-sm font-bold text-navy-950">{user.nome}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{user.cpf}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm text-zinc-600">{user.email}</td>
+                    <td className="px-8 py-5 text-sm text-slate-600">{user.email}</td>
                     <td className="px-8 py-5">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        user.tipo === 'admin' ? 'bg-violet-100 text-violet-700' : 'bg-zinc-100 text-zinc-700'
+                        user.tipo === 'admin' ? 'bg-navy-100 text-navy-700' : 'bg-slate-100 text-slate-700'
                       }`}>
                         {user.tipo}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-sm text-zinc-500">
+                    <td className="px-8 py-5 text-sm text-slate-500">
                       {new Date(user.data_criacao).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-8 py-5 text-right">
                       <button 
                         onClick={() => toggleUserRole(user)}
                         disabled={updatingRole === user.id}
-                        className="text-xs font-bold text-zinc-900 hover:underline underline-offset-4 disabled:opacity-50"
+                        className="text-xs font-bold text-navy-950 hover:underline underline-offset-4 disabled:opacity-50"
                       >
                         {updatingRole === user.id ? 'Atualizando...' : `Tornar ${user.tipo === 'admin' ? 'Colaborador' : 'Admin'}`}
                       </button>
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsUploadModalOpen(false)}
-              className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -267,18 +267,18 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden relative z-10"
             >
-              <div className="p-8 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
-                  <h3 className="text-2xl font-display font-bold text-zinc-900">Enviar Documento</h3>
-                  <p className="text-sm text-zinc-500">O colaborador será notificado imediatamente.</p>
+                  <h3 className="text-2xl font-display font-bold text-navy-950">Enviar Documento</h3>
+                  <p className="text-sm text-slate-500">O colaborador será notificado imediatamente.</p>
                 </div>
-                <button onClick={() => setIsUploadModalOpen(false)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-white rounded-xl transition-all border border-transparent hover:border-zinc-200">
+                <button onClick={() => setIsUploadModalOpen(false)} className="p-2 text-slate-400 hover:text-navy-950 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                   <X className="w-6 h-6" />
                 </button>
               </div>
               <form onSubmit={handleUpload} className="p-8 space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-zinc-700 ml-1">Colaborador Destinatário</label>
+                  <label className="text-sm font-bold text-slate-700 ml-1">Colaborador Destinatário</label>
                   <select 
                     required
                     value={selectedUser}
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-zinc-700 ml-1">Tipo de Documento</label>
+                    <label className="text-sm font-bold text-slate-700 ml-1">Tipo de Documento</label>
                     <select 
                       required
                       value={docType}
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-zinc-700 ml-1">Mês/Ano Competência</label>
+                    <label className="text-sm font-bold text-slate-700 ml-1">Mês/Ano Competência</label>
                     <input 
                       type="text" 
                       required
@@ -320,8 +320,8 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-zinc-700 ml-1">Arquivo PDF</label>
-                  <div className="border-2 border-dashed border-zinc-200 rounded-2xl p-10 text-center hover:bg-zinc-50 hover:border-zinc-900/20 transition-all cursor-pointer relative group">
+                  <label className="text-sm font-bold text-slate-700 ml-1">Arquivo PDF</label>
+                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:bg-slate-50 hover:border-navy-950/20 transition-all cursor-pointer relative group">
                     <input 
                       type="file" 
                       accept=".pdf"
@@ -329,13 +329,13 @@ export default function AdminDashboard() {
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
-                    <div className="w-12 h-12 bg-zinc-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                      <Upload className="w-6 h-6 text-zinc-500" />
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <Upload className="w-6 h-6 text-slate-500" />
                     </div>
-                    <p className="text-sm font-bold text-zinc-900">
+                    <p className="text-sm font-bold text-navy-950">
                       {file ? file.name : 'Clique para selecionar ou arraste o PDF'}
                     </p>
-                    <p className="text-xs text-zinc-400 mt-2 font-medium uppercase tracking-wider">Apenas PDF • Máx 10MB</p>
+                    <p className="text-xs text-slate-400 mt-2 font-medium uppercase tracking-wider">Apenas PDF • Máx 10MB</p>
                   </div>
                 </div>
 

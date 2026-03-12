@@ -9,21 +9,23 @@
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
 
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #22c55e;
-  --color-brand-600: #16a34a;
-  --color-brand-700: #15803d;
-  --color-brand-800: #166534;
-  --color-brand-900: #14532d;
+  /* Custom Navy Palette */
+  --color-navy-50: #f0f7ff;
+  --color-navy-100: #e0effe;
+  --color-navy-200: #bae0fd;
+  --color-navy-300: #7cc7fb;
+  --color-navy-400: #38a9f8;
+  --color-navy-500: #0e8ce9;
+  --color-navy-600: #026ec7;
+  --color-navy-700: #0358a1;
+  --color-navy-800: #074b85;
+  --color-navy-900: #0c3f6e;
+  --color-navy-950: #08294a;
 }
 
 @layer base {
   body {
-    @apply font-sans text-zinc-900 bg-zinc-50 antialiased;
+    @apply font-sans text-slate-900 bg-slate-50 antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -37,18 +39,18 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5;
   }
 
   .btn-primary {
-    @apply bg-zinc-900 text-white px-6 py-3 rounded-xl font-medium hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    @apply bg-navy-950 text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-navy-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-navy-950/10 active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply bg-white text-zinc-900 border border-zinc-200 px-6 py-3 rounded-xl font-medium hover:bg-zinc-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    @apply bg-white text-navy-950 border border-slate-200 px-6 py-3.5 rounded-xl font-semibold hover:bg-slate-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98];
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 outline-none transition-all bg-white;
+    @apply w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-navy-500/10 focus:border-navy-500 outline-none transition-all bg-white text-slate-900 placeholder:text-slate-400;
   }
 }

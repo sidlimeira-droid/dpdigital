@@ -87,7 +87,7 @@ export default function EmployeeDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-10 h-10 animate-spin text-zinc-900" />
+        <Loader2 className="w-10 h-10 animate-spin text-navy-950" />
       </div>
     );
   }
@@ -97,8 +97,8 @@ export default function EmployeeDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-display font-bold text-zinc-900 tracking-tight">Meus Documentos</h1>
-          <p className="text-zinc-500 mt-1">Visualize e assine seus documentos digitais com segurança.</p>
+          <h1 className="text-3xl font-display font-bold text-navy-950 tracking-tight">Meus Documentos</h1>
+          <p className="text-slate-500 mt-1">Visualize e assine seus documentos digitais com segurança.</p>
         </div>
         {!userSignature && (
           <motion.button 
@@ -118,22 +118,22 @@ export default function EmployeeDashboard() {
         {[
           { label: 'Pendentes', value: pendingDocs.length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
           { label: 'Assinados', value: signedDocs.length, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Total', value: docs.length, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Total', value: docs.length, icon: FileText, color: 'text-navy-600', bg: 'bg-navy-50' },
         ].map((stat, i) => (
           <motion.div 
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm card-hover"
+            className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm card-hover"
           >
             <div className="flex items-center gap-4">
               <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">{stat.label}</p>
-                <p className="text-3xl font-display font-bold text-zinc-900 mt-1">{stat.value}</p>
+                <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                <p className="text-3xl font-display font-bold text-navy-950 mt-1">{stat.value}</p>
               </div>
             </div>
           </motion.div>
@@ -166,14 +166,14 @@ export default function EmployeeDashboard() {
       )}
 
       {/* Documents List */}
-      <div className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-zinc-100 flex items-center justify-between">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-zinc-900">Lista de Documentos</h2>
-            <p className="text-sm text-zinc-500">Clique em um documento para visualizar ou assinar.</p>
+            <h2 className="text-xl font-bold text-navy-950">Lista de Documentos</h2>
+            <p className="text-sm text-slate-500">Clique em um documento para visualizar ou assinar.</p>
           </div>
         </div>
-        <div className="divide-y divide-zinc-100">
+        <div className="divide-y divide-slate-100">
           {docs.length > 0 ? (
             docs.map((doc, i) => (
               <motion.div 
@@ -181,7 +181,7 @@ export default function EmployeeDashboard() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-zinc-50/50 transition-all group"
+                className="p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-all group"
               >
                 <div className="flex items-center gap-6">
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors ${
@@ -192,16 +192,16 @@ export default function EmployeeDashboard() {
                     <FileText className="w-7 h-7" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-zinc-900 capitalize group-hover:text-zinc-900 transition-colors">
+                    <p className="text-lg font-bold text-navy-950 capitalize group-hover:text-navy-950 transition-colors">
                       {doc.tipo_documento.replace('_', ' ')}
                     </p>
                     <div className="flex flex-wrap items-center gap-4 mt-2">
-                      <div className="flex items-center gap-1.5 text-sm font-bold text-zinc-500">
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-slate-500">
                         <Calendar className="w-4 h-4" />
                         {doc.competencia}
                       </div>
-                      <div className="w-1 h-1 rounded-full bg-zinc-300" />
-                      <span className="text-sm text-zinc-400 font-medium">
+                      <div className="w-1 h-1 rounded-full bg-slate-300" />
+                      <span className="text-sm text-slate-400 font-medium">
                         Enviado em: {new Date(doc.data_envio).toLocaleDateString('pt-BR')}
                       </span>
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
@@ -235,7 +235,7 @@ export default function EmployeeDashboard() {
                       href={doc.arquivo_pdf} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-zinc-200"
+                      className="btn-primary bg-navy-950 hover:bg-navy-900 shadow-navy-950/20"
                     >
                       <Download className="w-4 h-4" />
                       Baixar
@@ -246,11 +246,11 @@ export default function EmployeeDashboard() {
             ))
           ) : (
             <div className="p-24 text-center">
-              <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FileText className="text-zinc-200 w-10 h-10" />
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FileText className="text-slate-200 w-10 h-10" />
               </div>
-              <h3 className="text-lg font-bold text-zinc-900">Nenhum documento</h3>
-              <p className="text-zinc-500 mt-1">Você ainda não recebeu nenhum documento para assinar.</p>
+              <h3 className="text-lg font-bold text-navy-950">Nenhum documento</h3>
+              <p className="text-slate-500 mt-1">Você ainda não recebeu nenhum documento para assinar.</p>
             </div>
           )}
         </div>
@@ -265,7 +265,7 @@ export default function EmployeeDashboard() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setViewingDoc(null)}
-              className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -273,36 +273,36 @@ export default function EmployeeDashboard() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col relative z-10"
             >
-              <div className="p-8 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
-                  <h3 className="text-2xl font-display font-bold text-zinc-900 capitalize">
+                  <h3 className="text-2xl font-display font-bold text-navy-950 capitalize">
                     {viewingDoc.tipo_documento.replace('_', ' ')} - {viewingDoc.competencia}
                   </h3>
-                  <p className="text-sm text-zinc-500">Visualização segura do documento</p>
+                  <p className="text-sm text-slate-500">Visualização segura do documento</p>
                 </div>
-                <button onClick={() => setViewingDoc(null)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-white rounded-xl transition-all border border-transparent hover:border-zinc-200">
+                <button onClick={() => setViewingDoc(null)} className="p-2 text-slate-400 hover:text-navy-950 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                   <X className="w-7 h-7" />
                 </button>
               </div>
               
-              <div className="flex-1 bg-zinc-100 p-6 overflow-hidden">
+              <div className="flex-1 bg-slate-100 p-6 overflow-hidden">
                 <iframe 
                   src={`${viewingDoc.arquivo_pdf}#toolbar=0`} 
-                  className="w-full h-full rounded-2xl border border-zinc-200 bg-white shadow-inner"
+                  className="w-full h-full rounded-2xl border border-slate-200 bg-white shadow-inner"
                   title="Document Viewer"
                 />
               </div>
 
-              <div className="p-8 border-t border-zinc-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="flex items-center gap-3 text-zinc-600">
+              <div className="p-8 border-t border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex items-center gap-3 text-slate-600">
                   <div className={`p-2 rounded-xl ${viewingDoc.status === 'pendente' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
                     {viewingDoc.status === 'pendente' ? <AlertCircle className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-zinc-900">
+                    <p className="text-sm font-bold text-navy-950">
                       {viewingDoc.status === 'pendente' ? 'Aguardando Assinatura' : 'Documento Assinado'}
                     </p>
-                    <p className="text-xs font-medium text-zinc-500">
+                    <p className="text-xs font-medium text-slate-500">
                       {viewingDoc.status === 'pendente' 
                         ? 'Este documento ainda não possui validade jurídica.' 
                         : `Assinado digitalmente em ${new Date(viewingDoc.data_assinatura!).toLocaleString('pt-BR')}`}
@@ -330,7 +330,7 @@ export default function EmployeeDashboard() {
                       href={viewingDoc.arquivo_pdf} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-zinc-200 px-10"
+                      className="btn-primary bg-navy-950 hover:bg-navy-900 shadow-navy-950/20 px-10"
                     >
                       <Download className="w-5 h-5" />
                       Baixar PDF
