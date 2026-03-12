@@ -8,6 +8,10 @@ import { AlertCircle } from 'lucide-react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminEmployees from './pages/AdminEmployees';
+import AdminDocuments from './pages/AdminDocuments';
+import AdminSettings from './pages/AdminSettings';
+import AdminReports from './pages/AdminReports';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import Signature from './pages/Signature';
 import Layout from './components/Layout';
@@ -104,6 +108,22 @@ export default function App() {
                 <Navigate to="/login" />
               )
             } 
+          />
+          <Route 
+            path="/users" 
+            element={session && profile?.tipo === 'admin' ? <AdminEmployees /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/docs" 
+            element={session && profile?.tipo === 'admin' ? <AdminDocuments /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/settings" 
+            element={session && profile?.tipo === 'admin' ? <AdminSettings /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/reports" 
+            element={session && profile?.tipo === 'admin' ? <AdminReports /> : <Navigate to="/" />} 
           />
           <Route 
             path="/signature" 

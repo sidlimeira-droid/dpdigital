@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, PenTool, Bell, LogOut, User, Menu, X, ChevronRight, Settings, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, FileText, PenTool, Bell, LogOut, User, Menu, X, ChevronRight, Settings, HelpCircle, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Profile, Notification } from '../types';
 import { supabase } from '../lib/supabase';
@@ -65,6 +65,7 @@ export default function Layout({ profile }: LayoutProps) {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Colaboradores', path: '/users', icon: User },
         { name: 'Documentos', path: '/docs', icon: FileText },
+        { name: 'Relatórios', path: '/reports', icon: BarChart3 },
         { name: 'Configurações', path: '/settings', icon: Settings },
       ]
     : [
