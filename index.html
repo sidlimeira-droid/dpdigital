@@ -10,6 +10,24 @@
   </head>
   <body>
     <div id="root"></div>
+    <script type="text/javascript">
+      window.onerror = function(msg, url, line, col, error) {
+        console.error("Global Error: ", msg, " at ", url, ":", line);
+        var root = document.getElementById('root');
+        if (root && (!root.innerHTML || root.innerHTML === "")) {
+          root.innerHTML = '<div style="padding: 40px; color: #08294a; font-family: sans-serif; text-align: center;">' +
+            '<h2 style="font-size: 24px; margin-bottom: 16px;">Erro de Inicialização</h2>' +
+            '<p style="color: #64748b; margin-bottom: 24px;">Ocorreu um erro ao carregar a aplicação. Isso pode ser devido a variáveis de ambiente ausentes ou um erro no código.</p>' +
+            '<div style="background: #f1f5f9; padding: 16px; border-radius: 12px; margin-bottom: 24px; text-align: left; font-family: monospace; font-size: 12px; overflow: auto;">' +
+            '<strong>Erro:</strong> ' + msg + '<br>' +
+            '<strong>Local:</strong> ' + url + ':' + line +
+            '</div>' +
+            '<button onclick="location.reload()" style="padding: 12px 24px; background: #08294a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">Recarregar Página</button>' +
+            '</div>';
+        }
+        return false;
+      };
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

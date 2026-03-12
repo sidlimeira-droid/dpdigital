@@ -48,7 +48,7 @@ export default function Layout({ profile }: LayoutProps) {
       .from('notifications')
       .select('*')
       .eq('user_id', profile?.id)
-      .order('data_creation', { ascending: false })
+      .order('data_criacao', { ascending: false })
       .limit(10);
     if (data) setNotifications(data);
   }
