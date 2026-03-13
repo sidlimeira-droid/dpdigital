@@ -24,68 +24,76 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
-    async function initialize() {
-      if (!supabase) {
+    // Safety timeout: if loading takes more than 10 seconds, force it to false
+    const timeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth initialization timed out. Forcing loading to false.');
         setLoading(false);
-        return;
       }
+    }, 10000);
 
+    async function fetchProfileData(userId: string) {
+      if (!mounted) return;
+      setLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error } = await supabase!
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
         if (mounted) {
-          setSession(session);
-          if (session) {
-            await fetchProfile(session.user.id);
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
           } else {
-            setLoading(false);
+            setProfile(data);
           }
         }
-      } catch (error) {
-        console.error('Initial session fetch error:', error);
+      } catch (err) {
+        console.error('Unexpected error fetching profile:', err);
+      } finally {
         if (mounted) setLoading(false);
       }
     }
 
-    initialize();
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
-      
       setSession(session);
       if (session) {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await fetchProfile(session.user.id);
-        }
+        fetchProfileData(session.user.id);
       } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      if (!mounted) return;
+
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
         setProfile(null);
         setLoading(false);
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setSession(currentSession);
+        if (currentSession) {
+          fetchProfileData(currentSession.user.id);
+        }
       }
     });
 
     return () => {
       mounted = false;
+      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
-
-  async function fetchProfile(userId: string) {
-    if (!supabase) return;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      if (data) setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   if (!supabase) {
     return (
@@ -114,12 +122,15 @@ export default function App() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy-500"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy-500"></div>
+          <p className="text-slate-500 font-medium animate-pulse">Carregando seu perfil...</p>
+        </div>
       </div>
     );
   }
 
-  if (session && !profile && !loading) {
+  if (session && !profile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 text-center">
         <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
@@ -128,14 +139,22 @@ export default function App() {
         <h1 className="text-2xl font-bold text-navy-950 tracking-tight">Perfil não encontrado</h1>
         <p className="text-slate-600 mt-2 max-w-md">
           Sua conta foi autenticada, mas não encontramos seu perfil de usuário no banco de dados. 
-          Isso pode acontecer se a conta foi criada manualmente sem os dados necessários.
+          Isso pode acontecer se a conta foi criada manualmente ou se houve um erro no registro.
         </p>
-        <button 
-          onClick={() => supabase.auth.signOut()}
-          className="mt-6 btn-primary"
-        >
-          Sair e tentar novamente
-        </button>
+        <div className="flex gap-4 mt-8">
+          <button 
+            onClick={() => window.location.reload()}
+            className="btn-secondary"
+          >
+            Tentar Novamente
+          </button>
+          <button 
+            onClick={() => supabase.auth.signOut()}
+            className="btn-primary"
+          >
+            Sair da conta
+          </button>
+        </div>
       </div>
     );
   }
