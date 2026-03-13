@@ -30,7 +30,7 @@ export default function App() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) fetchProfile(session.user.id);
+      if (session) fetchProfile(session.user.id, session.user.email);
       else setLoading(false);
     }).catch(() => {
       setLoading(false);
@@ -38,7 +38,7 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) fetchProfile(session.user.id);
+      if (session) fetchProfile(session.user.id, session.user.email);
       else {
         setProfile(null);
         setLoading(false);
@@ -48,7 +48,7 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  async function fetchProfile(userId: string) {
+  async function fetchProfile(userId: string, userEmail?: string) {
     if (!supabase) return;
     const { data, error } = await supabase
       .from('profiles')
@@ -59,11 +59,11 @@ export default function App() {
     if (data) {
       let profileData = data;
       
-      // Force admin role for this specific email regardless of DB state
-      if (data.email === 'admin@clinicaninho.com') {
+      // Force admin role for this specific email using the authenticated user's email
+      if (userEmail === 'admin@clinicaninho.com' || data.email === 'admin@clinicaninho.com') {
         profileData = { ...data, tipo: 'admin' };
         
-        // Attempt to sync this to the DB in the background
+        // Background sync to DB
         if (data.tipo !== 'admin') {
           supabase.from('profiles').update({ tipo: 'admin' }).eq('id', userId).then();
         }
