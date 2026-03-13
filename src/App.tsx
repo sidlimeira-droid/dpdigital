@@ -50,14 +50,21 @@ export default function App() {
 
   async function fetchProfile(userId: string) {
     if (!supabase) return;
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (data) setProfile(data);
-    setLoading(false);
+      if (error) throw error;
+      if (data) setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (!supabase) {
@@ -84,7 +91,7 @@ export default function App() {
     );
   }
 
-  if (loading) {
+  if (loading || (session && !profile)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy-500"></div>
