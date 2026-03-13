@@ -45,21 +45,24 @@ export default function App() {
         if (mounted) {
           if (error) {
             console.warn('Profile not found, attempting auto-repair...', error);
-            // Auto-repair: Try to create profile from auth metadata
+            // Auto-repair: Try to create profile from auth metadata or defaults
             const { data: { user } } = await supabase!.auth.getUser();
-            if (user && user.user_metadata) {
+            if (user) {
+              // Determine if user should be admin (fallback logic)
+              const isDefaultAdmin = user.email === 'admin@clinicaninho.com' || user.email === 'Sidlimeira@gmail.com';
+              
               const { error: insertError } = await supabase!
                 .from('profiles')
                 .insert([{
                   id: user.id,
-                  nome: user.user_metadata.nome || 'Usuário',
-                  cpf: user.user_metadata.cpf || '000.000.000-00',
+                  nome: user.user_metadata?.nome || user.email?.split('@')[0] || 'Usuário',
+                  cpf: user.user_metadata?.cpf || '000.000.000-00',
                   email: user.email,
-                  tipo: user.user_metadata.tipo || 'colaborador'
+                  tipo: user.user_metadata?.tipo || (isDefaultAdmin ? 'admin' : 'colaborador')
                 }]);
               
               if (!insertError) {
-                // Try fetching again
+                console.log('Auto-repair successful!');
                 const { data: retryData } = await supabase!
                   .from('profiles')
                   .select('*')
@@ -67,7 +70,7 @@ export default function App() {
                   .single();
                 if (retryData) setProfile(retryData);
               } else {
-                console.error('Auto-repair failed:', insertError);
+                console.error('Auto-repair failed (likely RLS):', insertError);
                 setProfile(null);
               }
             } else {
