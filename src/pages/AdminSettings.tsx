@@ -1,21 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { 
   Settings, User, Bell, Shield, Database, Globe, 
-  Save, Loader2, CheckCircle, Smartphone, Mail
+  Save, Loader2, CheckCircle, Smartphone, Mail, Camera
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Profile } from '../types';
 
 export default function AdminSettings() {
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  const handleSave = () => {
+  // Form state
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  async function fetchProfile() {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setProfile(data);
+        setNome(data.nome || '');
+        setCpf(data.cpf || '');
+        setEmail(data.email || '');
+      }
+    }
+    setLoading(false);
+  }
+
+  const handleSave = async () => {
+    if (!profile) return;
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          nome,
+          cpf,
+          email
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+      
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    }, 1500);
+    } catch (error: any) {
+      alert('Erro ao salvar: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const sections = [
@@ -101,6 +150,60 @@ export default function AdminSettings() {
                       </div>
                     </div>
                     <button className="text-xs font-bold text-navy-600 hover:underline">Alterar</button>
+                  </div>
+                </div>
+              )}
+
+              {activeSection === 'profile' && (
+                <div className="space-y-8">
+                  <div className="flex flex-col sm:flex-row items-center gap-8">
+                    <div className="relative">
+                      <div className="w-32 h-32 bg-slate-100 rounded-3xl flex items-center justify-center text-4xl font-bold text-slate-400 border-2 border-dashed border-slate-200">
+                        {nome?.charAt(0) || '?'}
+                      </div>
+                      <button className="absolute -bottom-2 -right-2 p-2 bg-navy-950 text-white rounded-xl shadow-lg hover:scale-110 transition-transform">
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex-1 space-y-1 text-center sm:text-left">
+                      <h4 className="text-lg font-bold text-navy-950">{nome || 'Seu Nome'}</h4>
+                      <p className="text-sm text-slate-500">Administrador do Sistema</p>
+                      <p className="text-xs text-slate-400 mt-2 italic">A imagem de perfil deve ter no máximo 2MB.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Nome Completo</label>
+                      <input 
+                        type="text" 
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        className="input-field" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">E-mail</label>
+                      <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="input-field" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">CPF</label>
+                      <input 
+                        type="text" 
+                        value={cpf}
+                        onChange={(e) => setCpf(e.target.value)}
+                        className="input-field" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Telefone</label>
+                      <input type="text" defaultValue="(11) 99999-9999" className="input-field" />
+                    </div>
                   </div>
                 </div>
               )}

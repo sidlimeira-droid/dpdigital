@@ -95,8 +95,32 @@ export default function AdminDashboard() {
   }
 
   async function handleExport() {
-    alert('Exportando dados para Excel... (Simulação)');
-    // In a real app, we would generate a CSV/XLSX file here
+    if (docs.length === 0) {
+      alert('Não há documentos para exportar.');
+      return;
+    }
+
+    const headers = ['Nome', 'Status', 'Data Envio', 'Data Assinatura', 'Colaborador'];
+    const csvContent = [
+      headers.join(','),
+      ...docs.map(doc => [
+        `"${doc.nome}"`,
+        doc.status,
+        doc.data_envio,
+        doc.data_assinatura || '',
+        `"${doc.colaborador_id}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `relatorio_documentos_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   const stats = [
