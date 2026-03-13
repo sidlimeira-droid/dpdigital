@@ -22,30 +22,50 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('App component mounted. Supabase status:', !!supabase);
-    if (!supabase) {
-      setLoading(false);
-      return;
+    let mounted = true;
+
+    async function initialize() {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted) {
+          setSession(session);
+          if (session) {
+            await fetchProfile(session.user.id);
+          } else {
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Initial session fetch error:', error);
+        if (mounted) setLoading(false);
+      }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchProfile(session.user.id);
-      else setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+    initialize();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       setSession(session);
-      if (session) fetchProfile(session.user.id);
-      else {
+      if (session) {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          await fetchProfile(session.user.id);
+        }
+      } else {
         setProfile(null);
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function fetchProfile(userId: string) {
@@ -91,10 +111,31 @@ export default function App() {
     );
   }
 
-  if (loading || (session && !profile)) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy-500"></div>
+      </div>
+    );
+  }
+
+  if (session && !profile && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
+          <AlertCircle className="text-red-600 w-8 h-8" />
+        </div>
+        <h1 className="text-2xl font-bold text-navy-950 tracking-tight">Perfil não encontrado</h1>
+        <p className="text-slate-600 mt-2 max-w-md">
+          Sua conta foi autenticada, mas não encontramos seu perfil de usuário no banco de dados. 
+          Isso pode acontecer se a conta foi criada manualmente sem os dados necessários.
+        </p>
+        <button 
+          onClick={() => supabase.auth.signOut()}
+          className="mt-6 btn-primary"
+        >
+          Sair e tentar novamente
+        </button>
       </div>
     );
   }
