@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { PenTool, Trash2, Save, CheckCircle, Loader2, Info, AlertCircle, ShieldCheck, RefreshCw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -15,16 +16,20 @@ export default function Signature() {
   }, []);
 
   async function fetchSignature() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) return;
 
-    const { data } = await supabase
-      .from('user_signature')
-      .select('assinatura_imagem')
-      .eq('user_id', user.id)
-      .single();
-
-    if (data) setSavedSignature(data.assinatura_imagem);
+    try {
+      const q = query(collection(db, 'user_signatures'), where('user_id', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        setSavedSignature(data.assinatura_imagem);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar assinatura:", error);
+    }
   }
 
   function clear() {
@@ -42,36 +47,20 @@ export default function Signature() {
     setMessage(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = auth.currentUser;
       if (!user) throw new Error('Usuário não autenticado');
 
       const base64 = sigCanvas.current?.getTrimmedCanvas().toDataURL('image/png');
       if (!base64) throw new Error('Erro ao capturar imagem');
 
-      const fileName = `${user.id}/signature_${Date.now()}.png`;
-      const blob = await (await fetch(base64)).blob();
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('signatures')
-        .upload(fileName, blob, { upsert: true });
+      // Em Firestore, usamos o UID como ID do documento para garantir unicidade por usuário
+      await setDoc(doc(db, 'user_signatures', user.uid), {
+        user_id: user.uid,
+        assinatura_imagem: base64,
+        data_cadastro: new Date().toISOString()
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('signatures')
-        .getPublicUrl(fileName);
-
-      const { error: dbError } = await supabase
-        .from('user_signature')
-        .upsert({
-          user_id: user.id,
-          assinatura_imagem: publicUrl,
-          data_cadastro: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (dbError) throw dbError;
-
-      setSavedSignature(publicUrl);
+      setSavedSignature(base64);
       setMessage({ type: 'success', text: 'Sua assinatura digital foi salva com sucesso!' });
       sigCanvas.current?.clear();
     } catch (error: any) {

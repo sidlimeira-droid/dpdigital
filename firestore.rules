@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: profiles
+    // Document ID: userId (Auth UID)
+    // Fields:
+    //   - id: string (required)
+    //   - nome: string (required, 1-100 chars)
+    //   - cpf: string (required, format validation)
+    //   - email: string (required, email validation)
+    //   - tipo: string (required, 'admin' or 'colaborador')
+    //   - data_criacao: timestamp (required)
+    //
+    // Collection: documents
+    // Document ID: auto-generated
+    // Fields:
+    //   - user_id: string (required, references profile)
+    //   - tipo_documento: string (required, enum)
+    //   - competencia: string (required)
+    //   - arquivo_pdf: string (required)
+    //   - status: string (required, 'pendente' or 'assinado')
+    //   - data_envio: timestamp (required)
+    //   - data_assinatura: timestamp (optional)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.tipo == 'admin' ||
+         (request.auth.token.email == "Sidlimeira@gmail.com" && request.auth.token.email_verified == true) ||
+         (request.auth.token.email == "admin@clinicaninho.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidProfile(data) {
+      return data.keys().hasAll(['id', 'nome', 'cpf', 'email', 'tipo', 'data_criacao']) &&
+             data.id == request.auth.uid &&
+             data.nome is string && data.nome.size() > 0 && data.nome.size() < 100 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.tipo in ['admin', 'colaborador'];
+    }
+
+    function isValidDocument(data) {
+      return data.keys().hasAll(['user_id', 'tipo_documento', 'competencia', 'arquivo_pdf', 'status', 'data_envio']) &&
+             data.user_id is string &&
+             data.tipo_documento in ['contra_cheque', 'folha_ponto', 'trabalhista'] &&
+             data.status in ['pendente', 'assinado'];
+    }
+
+    // Profiles
+    match /profiles/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidProfile(request.resource.data) && 
+                    (request.resource.data.tipo == 'colaborador' || isAdmin());
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()) && isValidProfile(request.resource.data) &&
+                    (request.resource.data.tipo == resource.data.tipo || isAdmin());
+    }
+
+    // Documents
+    match /documents/{docId} {
+      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if isAdmin() && isValidDocument(request.resource.data);
+      allow update: if isAuthenticated() && 
+                    ((resource.data.user_id == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'data_assinatura'])) || isAdmin()) &&
+                    isValidDocument(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // User Signatures
+    match /user_signatures/{sigId} {
+      allow read, write: if isAuthenticated() && (request.resource.data.user_id == request.auth.uid || resource.data.user_id == request.auth.uid || isAdmin());
+    }
+
+    // Notifications
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { FileText, Mail, Lock, User, CreditCard, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -18,34 +20,36 @@ export default function Register() {
     setLoading(true);
     setError(null);
 
-    // 1. Auth Sign Up
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nome,
-          cpf,
-          tipo: 'colaborador',
-        }
-      }
-    });
+    try {
+      // 1. Auth Sign Up
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    if (authError) {
-      if (authError.message.includes('rate limit')) {
-        setError('Limite de e-mails excedido. Por favor, aguarde alguns minutos ou desative a confirmação de e-mail no painel do Supabase (Authentication > Settings).');
+      // 2. Create Profile in Firestore
+      // Se o email for o do admin solicitado, já criamos como admin
+      const tipo = (email === 'admin@clinicaninho.com' || email === 'Sidlimeira@gmail.com') ? 'admin' : 'colaborador';
+
+      await setDoc(doc(db, 'profiles', user.uid), {
+        id: user.uid,
+        nome,
+        cpf,
+        email,
+        tipo,
+        data_criacao: new Date().toISOString()
+      });
+
+      navigate('/');
+    } catch (err: any) {
+      console.error("Erro no registro:", err);
+      if (err.message.includes('rate limit')) {
+        setError('Muitas tentativas. Por favor, aguarde alguns minutos.');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setError('Este e-mail já está em uso.');
       } else {
-        setError(authError.message);
+        setError(err.message);
       }
       setLoading(false);
-      return;
     }
-
-    if (authData.user) {
-      // Profile is created automatically by the database trigger
-      navigate('/');
-    }
-
   }
 
   return (

@@ -2,7 +2,8 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FileText, PenTool, Bell, LogOut, User, Menu, X, ChevronRight, Settings, HelpCircle, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Profile, Notification } from '../types';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { collection, query, where, orderBy, limit, onSnapshot, signOut } from 'firebase/firestore';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'motion/react';
@@ -24,37 +25,24 @@ export default function Layout({ profile }: LayoutProps) {
 
   useEffect(() => {
     if (profile) {
-      fetchNotifications();
-      const subscription = supabase
-        .channel('notifications')
-        .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'notifications',
-          filter: `user_id=eq.${profile.id}`
-        }, (payload) => {
-          setNotifications(prev => [payload.new as Notification, ...prev]);
-        })
-        .subscribe();
+      const q = query(
+        collection(db, 'notifications'),
+        where('user_id', '==', profile.id),
+        orderBy('data_criacao', 'desc'),
+        limit(10)
+      );
 
-      return () => {
-        subscription.unsubscribe();
-      };
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+        setNotifications(notifs);
+      });
+
+      return () => unsubscribe();
     }
   }, [profile]);
 
-  async function fetchNotifications() {
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', profile?.id)
-      .order('data_criacao', { ascending: false })
-      .limit(10);
-    if (data) setNotifications(data);
-  }
-
   async function handleLogout() {
-    await supabase.auth.signOut();
+    await auth.signOut();
     navigate('/login');
   }
 

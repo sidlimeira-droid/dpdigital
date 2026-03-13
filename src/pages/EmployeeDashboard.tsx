@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { collection, query, where, getDocs, doc, updateDoc, addDoc, orderBy } from 'firebase/firestore';
 import { Document, UserSignature } from '../types';
 import { 
   FileText, CheckCircle, Clock, Download, PenTool, 
@@ -22,55 +23,58 @@ export default function EmployeeDashboard() {
 
   async function fetchData() {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) return;
 
-    const [docsRes, sigRes] = await Promise.all([
-      supabase.from('documents').select('*').eq('user_id', user.id).order('data_envio', { ascending: false }),
-      supabase.from('user_signature').select('*').eq('user_id', user.id).single()
-    ]);
+    try {
+      // Fetch documents
+      const docsQuery = query(
+        collection(db, 'documents'), 
+        where('user_id', '==', user.uid),
+        orderBy('data_envio', 'desc')
+      );
+      const docsSnap = await getDocs(docsQuery);
+      const docsData = docsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Document));
 
-    if (docsRes.data) setDocs(docsRes.data);
-    if (sigRes.data) setUserSignature(sigRes.data);
-    setLoading(false);
+      // Fetch user signature
+      const sigQuery = query(collection(db, 'user_signatures'), where('user_id', '==', user.uid));
+      const sigSnap = await getDocs(sigQuery);
+      const sigData = sigSnap.docs.length > 0 ? ({ id: sigSnap.docs[0].id, ...sigSnap.docs[0].data() } as UserSignature) : null;
+
+      setDocs(docsData);
+      setUserSignature(sigData);
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function handleSign(doc: Document) {
+  async function handleSign(docToSign: Document) {
     if (!userSignature) {
       alert('Por favor, cadastre sua assinatura primeiro no menu "Minha Assinatura".');
       return;
     }
 
-    setSigning(doc.id);
+    setSigning(docToSign.id);
     try {
-      const signedPdfBytes = await signPdf(doc.arquivo_pdf, userSignature.assinatura_imagem);
-      const fileName = `signed/${doc.user_id}/${Date.now()}_signed_${doc.id}.pdf`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(fileName, signedPdfBytes, { contentType: 'application/pdf' });
+      const signedPdfBase64 = await signPdf(docToSign.arquivo_pdf, userSignature.assinatura_imagem);
 
-      if (uploadError) throw uploadError;
+      // 1. Update Document in Firestore
+      const docRef = doc(db, 'documents', docToSign.id);
+      await updateDoc(docRef, {
+        status: 'assinado',
+        arquivo_pdf: signedPdfBase64,
+        data_assinatura: new Date().toISOString()
+      });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(fileName);
-
-      const { error: dbError } = await supabase
-        .from('documents')
-        .update({
-          status: 'assinado',
-          arquivo_pdf: publicUrl,
-          data_assinatura: new Date().toISOString()
-        })
-        .eq('id', doc.id);
-
-      if (dbError) throw dbError;
-
-      await supabase.from('signatures').insert([{
-        document_id: doc.id,
+      // 2. Create Audit Signature Record
+      await addDoc(collection(db, 'signatures'), {
+        document_id: docToSign.id,
         assinatura_imagem: userSignature.assinatura_imagem,
-        ip_usuario: '127.0.0.1'
-      }]);
+        ip_usuario: '127.0.0.1',
+        data_assinatura: new Date().toISOString()
+      });
 
       fetchData();
       setViewingDoc(null);

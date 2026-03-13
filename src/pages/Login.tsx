@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { auth } from '../lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { FileText, Mail, Lock, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -16,13 +17,13 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate('/');
+    } catch (err: any) {
+      console.error("Erro no login:", err);
       setError('Email ou senha inválidos');
       setLoading(false);
-    } else {
-      navigate('/');
     }
   }
 

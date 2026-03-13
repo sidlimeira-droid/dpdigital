@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { collection, query, getDocs, addDoc, orderBy, limit, where, Timestamp } from 'firebase/firestore';
 import { Document, Profile } from '../types';
 import { 
   Users, FileText, CheckCircle, Clock, Upload, Search, 
@@ -29,14 +30,29 @@ export default function AdminDashboard() {
 
   async function fetchData() {
     setLoading(true);
-    const [docsRes, usersRes] = await Promise.all([
-      supabase.from('documents').select('*, profile:profiles(*)').order('data_envio', { ascending: false }).limit(5),
-      supabase.from('profiles').select('*').eq('tipo', 'colaborador')
-    ]);
+    try {
+      // Fetch recent documents
+      const docsQuery = query(collection(db, 'documents'), orderBy('data_envio', 'desc'), limit(5));
+      const docsSnap = await getDocs(docsQuery);
+      const docsData = docsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Document));
 
-    if (docsRes.data) setDocs(docsRes.data);
-    if (usersRes.data) setColaboradores(usersRes.data);
-    setLoading(false);
+      // Fetch profiles for the documents (manual join for Firestore)
+      const profilesQuery = query(collection(db, 'profiles'), where('tipo', '==', 'colaborador'));
+      const profilesSnap = await getDocs(profilesQuery);
+      const profilesData = profilesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Profile));
+      
+      const docsWithProfiles = docsData.map(doc => ({
+        ...doc,
+        profile: profilesData.find(p => p.id === doc.user_id)
+      }));
+
+      setDocs(docsWithProfiles);
+      setColaboradores(profilesData);
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleUpload(e: React.FormEvent) {
@@ -45,43 +61,42 @@ export default function AdminDashboard() {
 
     setUploading(true);
     try {
-      const fileName = `${selectedUser}/${Date.now()}_${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(fileName, file);
+      // Convert file to Base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(file);
+      const base64File = await base64Promise;
 
-      if (uploadError) throw uploadError;
+      // 1. Create Document in Firestore
+      const docData = {
+        user_id: selectedUser,
+        tipo_documento: docType,
+        competencia,
+        arquivo_pdf: base64File,
+        status: 'pendente',
+        data_envio: new Date().toISOString()
+      };
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(fileName);
+      await addDoc(collection(db, 'documents'), docData);
 
-      const { data: docData, error: dbError } = await supabase
-        .from('documents')
-        .insert([{
-          user_id: selectedUser,
-          tipo_documento: docType,
-          competencia,
-          arquivo_pdf: publicUrl,
-          status: 'pendente'
-        }])
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
-      await supabase.from('notifications').insert([{
+      // 2. Create Notification
+      await addDoc(collection(db, 'notifications'), {
         user_id: selectedUser,
         titulo: 'Novo documento disponível',
         mensagem: `Um novo ${docType.replace('_', ' ')} de ${competencia} foi enviado para você.`,
-        tipo: 'documento_novo'
-      }]);
+        tipo: 'documento_novo',
+        lida: false,
+        data_criacao: new Date().toISOString()
+      });
 
       setIsUploadModalOpen(false);
       fetchData();
       resetForm();
     } catch (error: any) {
-      alert(error.message);
+      alert("Erro ao enviar documento: " + error.message);
     } finally {
       setUploading(false);
     }

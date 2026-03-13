@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "Profile": {
+      "title": "Perfil do Usuário",
+      "description": "Informações de perfil do colaborador ou administrador",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID do usuário (UID do Firebase Auth)" },
+        "nome": { "type": "string", "description": "Nome completo" },
+        "cpf": { "type": "string", "description": "CPF do usuário" },
+        "email": { "type": "string", "description": "E-mail corporativo" },
+        "tipo": { "type": "string", "enum": ["admin", "colaborador"], "description": "Tipo de acesso" },
+        "data_criacao": { "type": "string", "format": "date-time", "description": "Data de criação do perfil" }
+      },
+      "required": ["id", "nome", "cpf", "email", "tipo"]
+    },
+    "Document": {
+      "title": "Documento",
+      "description": "Documentos como holerites e folhas de ponto",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string", "description": "ID do colaborador dono do documento" },
+        "tipo_documento": { "type": "string", "enum": ["contra_cheque", "folha_ponto", "trabalhista"] },
+        "competencia": { "type": "string", "description": "Mês/Ano de referência" },
+        "arquivo_pdf": { "type": "string", "description": "URL ou Base64 do PDF" },
+        "status": { "type": "string", "enum": ["pendente", "assinado"] },
+        "data_envio": { "type": "string", "format": "date-time" },
+        "data_assinatura": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "tipo_documento", "competencia", "arquivo_pdf", "status"]
+    },
+    "UserSignature": {
+      "title": "Assinatura Salva",
+      "description": "Assinatura digital salva do usuário",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "assinatura_imagem": { "type": "string", "description": "Base64 da imagem da assinatura" },
+        "data_cadastro": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "assinatura_imagem"]
+    },
+    "Notification": {
+      "title": "Notificação",
+      "description": "Notificações do sistema para o usuário",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "titulo": { "type": "string" },
+        "mensagem": { "type": "string" },
+        "tipo": { "type": "string" },
+        "lida": { "type": "boolean" },
+        "data_criacao": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "titulo", "mensagem", "lida"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "Profile",
+      "description": "Coleção de perfis de usuários"
+    },
+    "/documents/{docId}": {
+      "schema": "Document",
+      "description": "Coleção de documentos"
+    },
+    "/user_signatures/{sigId}": {
+      "schema": "UserSignature",
+      "description": "Assinaturas salvas dos usuários"
+    },
+    "/notifications/{notifId}": {
+      "schema": "Notification",
+      "description": "Notificações do sistema"
+    }
+  }
+}
