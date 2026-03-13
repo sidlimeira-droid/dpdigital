@@ -104,9 +104,10 @@ export default function Register() {
         </div>
 
         <div className="relative z-10 pt-12 border-t border-navy-900">
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest">
-            © 2026 Sistema DP • Tecnologia para RH
-          </p>
+          <div className="text-slate-500 text-sm font-medium uppercase tracking-widest">
+            <p>© 2026 Sistema DP • Tecnologia para DP</p>
+            <p className="mt-1 normal-case tracking-normal text-slate-600">Desenvolvido por Sidney Limeira</p>
+          </div>
         </div>
       </motion.div>
 
