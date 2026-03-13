@@ -19,8 +19,6 @@ export default function AdminReports() {
     totalUsers: 0
   });
 
-  const [monthlyData, setMonthlyData] = useState<any[]>([]);
-
   useEffect(() => {
     fetchStats();
   }, []);
@@ -28,7 +26,7 @@ export default function AdminReports() {
   async function fetchStats() {
     setLoading(true);
     const [docsRes, usersRes] = await Promise.all([
-      supabase.from('documents').select('status, data_envio'),
+      supabase.from('documents').select('status'),
       supabase.from('profiles').select('id', { count: 'exact' })
     ]);
 
@@ -40,25 +38,6 @@ export default function AdminReports() {
         pendingDocs: docsRes.data.length - signed,
         totalUsers: usersRes.count || 0
       });
-
-      // Calculate monthly data
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const currentYear = new Date().getFullYear();
-      
-      const data = months.map((month, index) => {
-        const monthDocs = docsRes.data?.filter(d => {
-          const date = new Date(d.data_envio);
-          return date.getMonth() === index && date.getFullYear() === currentYear;
-        }) || [];
-        
-        return {
-          name: month,
-          docs: monthDocs.length,
-          assinaturas: monthDocs.filter(d => d.status === 'assinado').length
-        };
-      }).slice(0, new Date().getMonth() + 1); // Only show up to current month
-
-      setMonthlyData(data);
     }
     setLoading(false);
   }
@@ -66,6 +45,12 @@ export default function AdminReports() {
   const pieData = [
     { name: 'Assinados', value: stats.signedDocs, color: '#10b981' },
     { name: 'Pendentes', value: stats.pendingDocs, color: '#f59e0b' },
+  ];
+
+  const monthlyData = [
+    { name: 'Jan', docs: 45, assinaturas: 38 },
+    { name: 'Fev', docs: 52, assinaturas: 48 },
+    { name: 'Mar', docs: stats.totalDocs, assinaturas: stats.signedDocs },
   ];
 
   if (loading) {

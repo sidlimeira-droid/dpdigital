@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Profile } from '../types';
 import { 
   Users, Search, Filter, MoreVertical, Trash2, UserPlus, 
-  Loader2, Mail, Phone, Calendar, Shield, ShieldAlert, Edit
+  Loader2, Mail, Phone, Calendar, Shield, ShieldAlert
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -14,16 +14,8 @@ export default function AdminEmployees() {
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Profile | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // Edit form state
-  const [editNome, setEditNome] = useState('');
-  const [editCpf, setEditCpf] = useState('');
-  const [editEmail, setEditEmail] = useState('');
 
   useEffect(() => {
     fetchEmployees();
@@ -38,40 +30,6 @@ export default function AdminEmployees() {
 
     if (data) setColaboradores(data);
     setLoading(false);
-  }
-
-  function openEditModal(user: Profile) {
-    setSelectedEmployee(user);
-    setEditNome(user.nome || '');
-    setEditCpf(user.cpf || '');
-    setEditEmail(user.email || '');
-    setIsEditModalOpen(true);
-  }
-
-  async function handleUpdateEmployee(e: React.FormEvent) {
-    e.preventDefault();
-    if (!selectedEmployee) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          nome: editNome,
-          cpf: editCpf,
-          email: editEmail
-        })
-        .eq('id', selectedEmployee.id);
-
-      if (error) throw error;
-      
-      setIsEditModalOpen(false);
-      fetchEmployees();
-    } catch (error: any) {
-      alert('Erro ao atualizar: ' + error.message);
-    } finally {
-      setSaving(false);
-    }
   }
 
   async function deleteUser(id: string, nome: string) {
@@ -226,13 +184,6 @@ export default function AdminEmployees() {
                   <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button 
-                        onClick={() => openEditModal(user)}
-                        className="p-2 text-slate-400 hover:text-navy-950 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-200"
-                        title="Editar Colaborador"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button 
                         onClick={() => toggleUserRole(user)}
                         disabled={updatingRole === user.id}
                         className="p-2 text-slate-400 hover:text-navy-950 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-200"
@@ -256,75 +207,6 @@ export default function AdminEmployees() {
           </table>
         </div>
       </div>
-
-      {/* Edit Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm"
-            onClick={() => setIsEditModalOpen(false)}
-          />
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 relative z-10"
-          >
-            <h3 className="text-2xl font-display font-bold text-navy-950 mb-2">Editar Colaborador</h3>
-            <p className="text-sm text-slate-500 mb-6">Atualize as informações cadastrais do colaborador.</p>
-            
-            <form onSubmit={handleUpdateEmployee} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Nome Completo</label>
-                <input 
-                  type="text" 
-                  required
-                  value={editNome}
-                  onChange={(e) => setEditNome(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">CPF</label>
-                <input 
-                  type="text" 
-                  required
-                  value={editCpf}
-                  onChange={(e) => setEditCpf(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">E-mail</label>
-                <input 
-                  type="email" 
-                  required
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button 
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="btn-secondary flex-1"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  disabled={saving}
-                  className="btn-primary flex-1"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Alterações'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
 
       {/* Invite Modal */}
       {isInviteModalOpen && (

@@ -58,9 +58,6 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 -- Profiles Policies
 CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admins can manage all profiles." ON profiles FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND tipo = 'admin')
-);
 
 -- Documents Policies
 CREATE POLICY "Admins can do everything with documents." ON documents FOR ALL USING (
@@ -70,31 +67,18 @@ CREATE POLICY "Users can view own documents." ON documents FOR SELECT USING (aut
 CREATE POLICY "Users can update own documents status." ON documents FOR UPDATE USING (auth.uid() = user_id);
 
 -- User Signature Policies
-CREATE POLICY "Users can select own signature." ON user_signature FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own signature." ON user_signature FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own signature." ON user_signature FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Admins can view all signatures images." ON user_signature FOR SELECT USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND tipo = 'admin')
-);
+CREATE POLICY "Users can manage own signature." ON user_signature FOR ALL USING (auth.uid() = user_id);
 
 -- Signatures Policies
-CREATE POLICY "Admins can view all signatures logs." ON signatures FOR SELECT USING (
+CREATE POLICY "Admins can view all signatures." ON signatures FOR SELECT USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND tipo = 'admin')
 );
-CREATE POLICY "Users can view own signatures logs." ON signatures FOR SELECT USING (
-  EXISTS (SELECT 1 FROM documents WHERE id = signatures.document_id AND user_id = auth.uid())
-);
-CREATE POLICY "Users can insert own signatures logs." ON signatures FOR INSERT WITH CHECK (
+CREATE POLICY "Users can view own signatures." ON signatures FOR SELECT USING (
   EXISTS (SELECT 1 FROM documents WHERE id = signatures.document_id AND user_id = auth.uid())
 );
 
 -- Notifications Policies
-CREATE POLICY "Users can select own notifications." ON notifications FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update own notifications." ON notifications FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Admins can insert notifications." ON notifications FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND tipo = 'admin')
-);
-CREATE POLICY "Users can delete own notifications." ON notifications FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can manage own notifications." ON notifications FOR ALL USING (auth.uid() = user_id);
 
 -- Enable Realtime for notifications
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
